@@ -1,18 +1,25 @@
 package com.example.reddit.service;
 
 import com.example.reddit.DTO.AuthenticationMail;
+import com.example.reddit.DTO.AuthenticationResponseDTO;
+import com.example.reddit.DTO.LoginRequestDTO;
 import com.example.reddit.DTO.RegisterRequestDTO;
 import com.example.reddit.entity.User;
 import com.example.reddit.entity.VerificationToken;
 import com.example.reddit.repository.UserRepository;
 import com.example.reddit.repository.VerificationTokenRepository;
+import com.example.reddit.util.JWTUtil;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import javax.persistence.EntityNotFoundException;
 import javax.transaction.Transactional;
-import java.time.LocalDateTime;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -20,10 +27,15 @@ import java.util.UUID;
 @RequiredArgsConstructor
 public class AuthService {
 
+    @Value("${security.jwt.secretKey}")
+    private String secretKey;
+
     private final PasswordEncoder passwordEncoder;
     private final VerificationTokenRepository verificationTokenRepository;
     private final UserRepository userRepository;
     private final EmailService emailService;
+    private final AuthenticationManager authenticationManager;
+    private final JWTUtil jwtUtil;
 
     @Transactional
     public void signup(RegisterRequestDTO registerRequestDTO) {
@@ -70,5 +82,13 @@ public class AuthService {
             user.setEnabled(true);
             userRepository.save(user);
         }
+    }
+
+    public AuthenticationResponseDTO login(LoginRequestDTO loginRequestDTO) {
+        Authentication authenticate = authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(loginRequestDTO.getUsername(),
+                loginRequestDTO.getPassword()));
+        SecurityContextHolder.getContext().setAuthentication(authenticate);
+        String token = jwtUtil.generateToken(authenticate, secretKey, 7);
+        return new AuthenticationResponseDTO(token, loginRequestDTO.getUsername());
     }
 }
