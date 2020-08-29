@@ -1,5 +1,6 @@
 package com.example.reddit.configuration;
 
+import com.example.reddit.filter.JWTAuthFilter;
 import com.example.reddit.service.UserDetailsServiceImpl;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -13,6 +14,7 @@ import org.springframework.security.config.annotation.web.configuration.WebSecur
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
 @Configuration
 @EnableWebSecurity
@@ -20,6 +22,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 public class SecurityConfig extends WebSecurityConfigurerAdapter {
 
     private final UserDetailsServiceImpl userDetailsService;
+    private final JWTAuthFilter jwtAuthFilter;
 
     @Autowired
     @Override
@@ -33,7 +36,9 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
                 .authorizeRequests()
                 .antMatchers("/api/auth/**")
                 .permitAll()
-                .anyRequest().authenticated();
+                .anyRequest().authenticated()
+                .and()
+                .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class);
     }
 
     @Bean

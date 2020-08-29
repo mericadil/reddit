@@ -16,11 +16,11 @@ import java.util.List;
 @SequenceGenerator(name = "idgen", sequenceName = "TOPIC_SEQ")
 public class Topic extends BaseEntity {
 
-    @NotBlank( message = "Topic name cannot be blank!")
     private String topicName;
 
-    @NotBlank(message = "Topic description cannot be blank!")
     private String description;
+
+    private Integer numberOfPosts;
 
     @OneToMany(fetch = FetchType.LAZY)
     @JoinColumn(name = "TOPIC_ID")
