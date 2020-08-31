@@ -6,6 +6,7 @@ import org.springframework.lang.Nullable;
 import javax.persistence.*;
 import javax.validation.constraints.NotBlank;
 import java.time.Instant;
+import java.util.List;
 
 @Entity
 @Getter
@@ -33,4 +34,7 @@ public class Post extends BaseEntity{
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn( name = "TOPIC_ID", referencedColumnName = "ID")
     private Topic topic;
+
+    @OneToMany(mappedBy = "post")
+    private List<Comment> comments;
 }

@@ -12,6 +12,7 @@ import javax.validation.constraints.NotBlank;
 @NoArgsConstructor
 @Builder
 public class TopicDTO {
+
     private Long id;
 
     @NotBlank( message = "Topic name cannot be blank!")
