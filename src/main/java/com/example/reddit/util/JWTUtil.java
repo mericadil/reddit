@@ -14,6 +14,7 @@ import java.time.ZoneId;
 import java.util.Date;
 
 import static io.jsonwebtoken.security.Keys.hmacShaKeyFor;
+import static java.util.Date.from;
 
 @Service
 @NoArgsConstructor
@@ -24,19 +25,19 @@ public class JWTUtil {
 
         return Jwts.builder()
                 .setSubject(principal.getUsername())
-                .setIssuedAt(new Date())
+                .setIssuedAt(from(Instant.now()))
                 .signWith(hmacShaKeyFor(secretKey.getBytes()))
                 .setExpiration(calculateExpirationDate(expirationDay))
                 .compact();
     }
 
-    private Date calculateExpirationDate(Integer expirationDay) {
+    public Date calculateExpirationDate(Integer expirationDay) {
         Instant expirationTime = LocalDate.now()
                 .plusDays(expirationDay)
                 .atStartOfDay()
                 .atZone(ZoneId.systemDefault())
                 .toInstant();
-        return Date.from(expirationTime);
+        return from(expirationTime);
     }
 
     public static String extractUsername(String jwt, String secretKey) {
@@ -47,5 +48,15 @@ public class JWTUtil {
                 .getBody();
 
         return claims.getSubject();
+    }
+
+    public String generateTokenWithUsername( String username, String secretKey, Integer expirationDay) {
+
+        return Jwts.builder()
+                .setSubject(username)
+                .setIssuedAt(from(Instant.now()))
+                .signWith(hmacShaKeyFor(secretKey.getBytes()))
+                .setExpiration(calculateExpirationDate(expirationDay))
+                .compact();
     }
 }

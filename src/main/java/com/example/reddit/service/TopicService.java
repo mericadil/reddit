@@ -6,6 +6,7 @@ import com.example.reddit.mapper.TopicMapper;
 import com.example.reddit.repository.TopicRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import javax.persistence.EntityNotFoundException;
 import java.util.List;
@@ -26,6 +27,7 @@ public class TopicService {
         return topicDTO;
     }
 
+    @Transactional(readOnly = true)
     public List<TopicDTO> getAllTopics() {
         return topicRepository.findAll()
                 .stream()

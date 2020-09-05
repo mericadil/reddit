@@ -1,9 +1,6 @@
 package com.example.reddit.service;
 
-import com.example.reddit.DTO.AuthenticationMail;
-import com.example.reddit.DTO.AuthenticationResponseDTO;
-import com.example.reddit.DTO.LoginRequestDTO;
-import com.example.reddit.DTO.RegisterRequestDTO;
+import com.example.reddit.DTO.*;
 import com.example.reddit.entity.User;
 import com.example.reddit.entity.VerificationToken;
 import com.example.reddit.repository.UserRepository;
@@ -18,10 +15,10 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.validation.annotation.Validated;
 
 import javax.persistence.EntityNotFoundException;
 import javax.transaction.Transactional;
-import java.time.Instant;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -92,14 +89,13 @@ public class AuthService {
                 loginRequestDTO.getPassword()));
         SecurityContextHolder.getContext().setAuthentication(authenticate);
         String token = jwtUtil.generateToken(authenticate, secretKey, 7);
-        return new AuthenticationResponseDTO(token, loginRequestDTO.getUsername());
-        /*
-        AuthenticationResponse.builder()
+
+        return AuthenticationResponseDTO.builder()
                 .authenticationToken(token)
                 .refreshToken(refreshTokenService.generateRefreshToken().getToken())
-                .expiresAt(Instant.now().plusMillis(jwtProvider.getJwtExpirationInMillis()))
-                .username(loginRequest.getUsername())
-                .build();*/
+                .expirationDate(jwtUtil.calculateExpirationDate(7).toInstant())
+                .username(loginRequestDTO.getUsername())
+                .build();
     }
 
     public User getCurrentUser() {
@@ -107,5 +103,21 @@ public class AuthService {
                 getContext().getAuthentication().getPrincipal();
         return userRepository.findByUsername(principal.getUsername())
                 .orElseThrow(() -> new UsernameNotFoundException("User name not found - " + principal.getUsername()));
+    }
+
+    public AuthenticationResponseDTO refreshToken(RefreshTokenRequestDTO refreshTokenRequest) {
+        refreshTokenService.validateRefreshToken(refreshTokenRequest.getRefreshToken());
+        String token = jwtUtil.generateTokenWithUsername(refreshTokenRequest.getUsername(), secretKey, 7);
+
+        return AuthenticationResponseDTO.builder()
+                .authenticationToken(token)
+                .refreshToken(refreshTokenRequest.getRefreshToken())
+                .expirationDate(jwtUtil.calculateExpirationDate(7).toInstant())
+                .username(refreshTokenRequest.getUsername())
+                .build();
+    }
+
+    public void logout( RefreshTokenRequestDTO refreshTokenRequest) {
+        refreshTokenService.deleteRefreshToken(refreshTokenRequest.getRefreshToken());
     }
 }

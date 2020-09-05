@@ -11,6 +11,7 @@ import com.example.reddit.repository.TopicRepository;
 import com.example.reddit.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.PostMapping;
 
 import javax.persistence.EntityNotFoundException;
@@ -35,6 +36,7 @@ public class PostService {
         postRepository.save(postMapper.mapToEntity(postRequest, topic, authService.getCurrentUser()));
     }
 
+    @Transactional(readOnly = true)
     public List<PostResponse> getPosts() {
         return postRepository.findAll()
                 .stream()
@@ -42,12 +44,14 @@ public class PostService {
                 .collect(toList());
     }
 
+    @Transactional(readOnly = true)
     public PostResponse getPost(Long id) {
         Post post = postRepository.findById(id)
                 .orElseThrow( () -> new EntityNotFoundException());
         return postMapper.mapToDto(post);
     }
 
+    @Transactional(readOnly = true)
     public List<PostResponse> getPostsByTopic(Long id) {
         Topic topic = topicRepository.findById(id)
                 .orElseThrow(() -> new EntityNotFoundException());
@@ -59,6 +63,7 @@ public class PostService {
                 .collect(toList());
     }
 
+    @Transactional(readOnly = true)
     public List<PostResponse> getPostsByUsername(String username) {
         User user = userRepository.findByUsername(username)
                 .orElseThrow(() -> new EntityNotFoundException());

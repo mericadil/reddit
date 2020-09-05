@@ -15,6 +15,4 @@ public class PostResponse {
     private String userName;
     private String topicName;
     private Integer commentCount;
-    // Look after
-    //private String duration;
 }
